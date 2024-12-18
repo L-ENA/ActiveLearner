@@ -3,37 +3,7 @@ from ActiveLearner import ActiveLearner
 from neural_classifier import SPECTER_CLS
 from utils import add_embedding
 
-def remit_new(simulate=False):
-    mypath = "data//UK_Calls_new.csv"
-    remits = ["Advanced Therapies"	,"Biomedical engineering"	,"Drug Therapy & medical device combination",	"Diagnostics",	"Artificial Intelligence",	"Gut health-microbiome-nutrition"]
-    for r in remits:
-        if r != "":
-            print(r)
-            data = pd.read_csv(mypath).fillna("")
-            data = data.sample(frac=1, random_state=48)
-            data.reset_index(drop=True, inplace=True)
 
-            data["label"]=0
-            data.loc[data[r] == "Y", 'label'] = 1
-            if not simulate:
-                print("reordering")
-                print(data.shape)
-                print(sum(data["label"]))
-
-                classifier = SPECTER_CLS
-                al = ActiveLearner(classifier, data, field="Summary", model_name="Neural", do_preprocess=True)
-                output = al.reorder_once()
-                output.rename(columns={"predictions": "{}_predictions_Summary".format(r.replace(" ", "_"))}, inplace=True)
-                output.to_csv(mypath, index=False)
-            else:
-                print("simulating")
-
-                data = data.drop(data[data.Include == ""].index)
-                print(data.shape)
-                print(sum(data["label"]))
-                classifier = SPECTER_CLS
-                al = ActiveLearner(classifier, data, field="Description", model_name="Neural", do_preprocess=False)
-                al.simulate_learning(r)
 
 def precompute(sents):
     from sentence_transformers import util, SentenceTransformer
@@ -44,56 +14,7 @@ def precompute(sents):
     cos_sim = util.pytorch_cos_sim(emb_source, emb_source)  # .diagonal().tolist()#all similarities
     return cos_sim
 
-def sort_by_remit(simulate=False):
-    mypath="H://Downloads//sonia_new.csv"
-    mycol="Category"
-    lbl="label"
-    refcol="Tiab"
-    data = pd.read_csv(mypath).fillna("")
-    txts=data[refcol]
-    print("precomputing embeddings")
-    #cosims=precompute(txts)
 
-
-    remits=data[mycol].unique()
-    print(remits)
-    # abstracts=[t[:900] for t in data["Description"]]
-    # data["abbrev"]=abstracts
-    # data.to_csv(mypath, index=False)
-
-    for r in remits:
-        if r != "":
-            print(r)
-            data = pd.read_csv(mypath).fillna("")
-            data = data.sample(frac=1, random_state=48)
-            data.reset_index(drop=True, inplace=True)
-
-            data[lbl]=0
-            data.loc[data[mycol] == r, lbl] = 1
-            if not simulate:
-                print("reordering")
-                print(data.shape)
-                print(sum(data[lbl]))
-
-                classifier = SPECTER_CLS
-                #al = ActiveLearner(classifier, data, field=refcol, model_name="Neural", do_preprocess=False, precomputed=cosims)
-                al = ActiveLearner(classifier, data, field=refcol, model_name="Neural", do_preprocess=False)
-                output = al.reorder_once()
-                output.rename(columns={"predictions": "{}_predictions_Tiab2".format(r.replace(" ", "_"))}, inplace=True)
-                output.to_csv(mypath, index=False)
-            else:
-                print("simulating")
-
-                data = data.drop(data[data[mycol] == ""].index)
-                print(data.shape)
-                print(sum(data[lbl]))
-                classifier = SPECTER_CLS
-                al = ActiveLearner(classifier, data, field="Title", model_name="Neural", do_preprocess=True)
-                al.simulate_learning(r)
-
-
-#sort_by_remit(simulate=False)
-#remit_new(simulate=True)
 #add_embedding("H://Downloads//fixed.csv", ["Abstract",	"Title"])
 
 
